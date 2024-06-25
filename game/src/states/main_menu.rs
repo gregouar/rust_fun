@@ -1,6 +1,7 @@
 use engine::core::GameState;
 
 use engine::text_rendering::{TextAlign, TextRenderer};
+use std::io;
 
 pub struct MainMenuState {}
 
@@ -16,7 +17,12 @@ impl GameState for MainMenuState {
     fn obscuring(&self) {}
     fn leaving(&self) {}
 
-    fn update(&self) {}
+    fn update(&self) {
+        // TODO: Move this to some kind of event managers
+        let mut buffer = String::new();
+        io::stdin().read_line(&mut buffer).unwrap(); // TODO: turn to ?
+        println!("{}", buffer);
+    }
 
     fn draw(&self, text_renderer: &dyn TextRenderer) {
         text_renderer.render_text("Welcome to the dungeon", TextAlign::Center);

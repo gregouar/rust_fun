@@ -22,6 +22,7 @@ impl TextRenderer for ConsoleTextRenderer {
     }
 
     fn render_text(&self, text: &str, text_align: TextAlign) {
+        //TODO: Line breaking ?
         let str_to_print = match text_align {
             TextAlign::Left => format!("{: <1$}", text, self.screen_width),
             TextAlign::Center => format!("{: ^1$}", text, self.screen_width),
