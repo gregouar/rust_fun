@@ -1,4 +1,4 @@
-pub mod text_renderer;
 pub mod console_text_renderer;
+mod text_renderer_trait;
 
-pub use text_renderer::TextRenderer;
+pub use text_renderer_trait::{TextAlign, TextRenderer};

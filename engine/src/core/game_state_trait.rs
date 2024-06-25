@@ -1,8 +1,13 @@
+use crate::text_rendering::TextRenderer;
+
 pub trait GameState {
     fn entering(&self);
     fn revealing(&self);
     fn obscuring(&self);
     fn leaving(&self);
+
+    fn update(&self);
+    fn draw(&self, text_renderer: &dyn TextRenderer);
 
     // fn handle_events(events_manager: &EventsManager);
     // fn update();

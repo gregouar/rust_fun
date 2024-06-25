@@ -6,7 +6,8 @@ use std::error::Error;
 use std::process;
 
 fn main() {
-    let text_renderer = ConsoleTextRenderer::new();
+    // TODO: Config file with screen_width
+    let text_renderer = ConsoleTextRenderer::new(80);
     let mut app = GameApp::new(text_renderer);
 
     if let Err(e) = app.run(MainMenuState::new()) {

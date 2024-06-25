@@ -8,6 +8,7 @@ pub struct GameApp {
     is_running: bool,
 }
 
+// Use generic type for text_renderer ?
 impl GameApp {
     pub fn new(text_renderer: Box<dyn TextRenderer>) -> Self {
         GameApp {
@@ -21,11 +22,11 @@ impl GameApp {
         self.initialize(starting_state)?;
 
         while self.is_running {
-            self.states_manager.update();
-            self.states_manager.draw(self.text_renderer);
-        }
+            self.states_manager.update_states();
 
-        // self.text_renderer.render_text("Welcome to the dungeon!");
+            self.text_renderer.clear();
+            self.states_manager.draw_states(&(*self.text_renderer));
+        }
 
         Ok(())
     }
