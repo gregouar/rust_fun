@@ -1,4 +1,5 @@
 use super::{TextAlign, TextRenderer};
+use crate::ui::RenderableTextUi;
 
 pub struct ConsoleTextRenderer {
     screen_width: usize,
@@ -34,5 +35,12 @@ impl TextRenderer for ConsoleTextRenderer {
 
     fn render_horizontal_separator(&self) {
         println!("{}", self.horizontal_separator);
+    }
+
+    fn render_text_ui(&self, text_ui: &RenderableTextUi) {
+        for option in text_ui.options_iter() {
+            let formatted_label = format!(" {}) {}", option.shortcut, option.label);
+            self.render_text(&formatted_label, TextAlign::Left);
+        }
     }
 }

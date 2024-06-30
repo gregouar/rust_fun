@@ -1,36 +1,60 @@
-use engine::core::GameState;
-
+use super::InGameState;
+use engine::core::{GameState, StateChangeAction};
+use engine::input_handling::InputRecorder;
 use engine::text_rendering::{TextAlign, TextRenderer};
-use std::io;
+use engine::ui::TextUi;
+use std::time::Duration;
 
-pub struct MainMenuState {}
+#[derive(Copy, Clone)]
+enum MainMenuOptions {
+    NewGame,
+    Options,
+    Quit,
+}
+
+pub struct MainMenuState {
+    ui: TextUi<MainMenuOptions>,
+}
 
 impl MainMenuState {
     pub fn new() -> Box<Self> {
-        Box::new(MainMenuState {})
+        let mut ui = TextUi::<MainMenuOptions>::new();
+        ui.add_option(String::from("New Game"), '1', MainMenuOptions::NewGame);
+        ui.add_option(String::from("Options"), '2', MainMenuOptions::Options);
+        ui.add_option(String::from("Quit"), 'Q', MainMenuOptions::Quit);
+        Box::new(MainMenuState { ui })
     }
 }
 
 impl GameState for MainMenuState {
-    fn entering(&self) {}
-    fn revealing(&self) {}
-    fn obscuring(&self) {}
-    fn leaving(&self) {}
+    fn entering(&mut self) {}
+    fn revealing(&mut self) {}
+    fn obscuring(&mut self) {}
+    fn leaving(&mut self) {}
 
-    fn update(&self) {
-        // TODO: Move this to some kind of event managers
-        let mut buffer = String::new();
-        io::stdin().read_line(&mut buffer).unwrap(); // TODO: turn to ?
-        println!("{}", buffer);
+    fn handle_input(&mut self, input_recorder: &InputRecorder) {
+        self.ui.handle_input(input_recorder);
+    }
+
+    fn update(&mut self, _elapsed_time: Duration) -> Vec<StateChangeAction> {
+        let mut state_change_actions = Vec::new();
+        if let Some(option) = self.ui.chosen_option() {
+            match option {
+                MainMenuOptions::NewGame => {
+                    state_change_actions.push(StateChangeAction::SwitchState(InGameState::new()))
+                }
+                MainMenuOptions::Options => {}
+                MainMenuOptions::Quit => state_change_actions.push(StateChangeAction::Stop),
+            };
+        }
+        state_change_actions
     }
 
     fn draw(&self, text_renderer: &dyn TextRenderer) {
         text_renderer.render_text("Welcome to the dungeon", TextAlign::Center);
         text_renderer.render_text("Main menu", TextAlign::Center);
         text_renderer.render_horizontal_separator();
-        // TODO: Some kind of UI ?
         text_renderer.render_text("Please choose your option:", TextAlign::Left);
-        text_renderer.render_text("  1) New game", TextAlign::Left);
-        text_renderer.render_text("  2) Quit", TextAlign::Left);
+        text_renderer.render_text_ui(&self.ui.renderable_text_ui());
     }
 }

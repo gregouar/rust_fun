@@ -1,5 +1,5 @@
 pub use game_app::GameApp;
-pub use game_state_trait::GameState;
+pub use game_state_trait::{GameState, StateChangeAction};
 pub use game_states_manager::GameStatesManager;
 
 mod game_app;

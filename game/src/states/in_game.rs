@@ -1,22 +1,74 @@
-use engine::core::GameState;
+use engine::core::{GameState, StateChangeAction};
 
+use super::MainMenuState;
+use engine::input_handling::InputRecorder;
 use engine::text_rendering::{TextAlign, TextRenderer};
+use engine::ui::TextUi;
+use std::time::Duration;
 
-pub struct InGameState {}
+#[derive(Copy, Clone)]
+enum InGameMenuOptions {
+    Inventory,
+    CharacterSheet,
+    Quit,
+}
+
+pub struct InGameState {
+    game_ui: TextUi<u8>,
+    menu_ui: TextUi<InGameMenuOptions>,
+}
 
 impl InGameState {
     pub fn new() -> Box<Self> {
-        Box::new(InGameState {})
+        let mut menu_ui = TextUi::<InGameMenuOptions>::new();
+        menu_ui.add_option(String::from("Inventory"), 'I', InGameMenuOptions::Inventory);
+        menu_ui.add_option(
+            String::from("Character sheet"),
+            'C',
+            InGameMenuOptions::CharacterSheet,
+        );
+        menu_ui.add_option(String::from("Quit"), 'Q', InGameMenuOptions::Quit);
+
+        let mut game_ui = TextUi::new();
+        // TODO: move somewhere else, should be dynamic
+        game_ui.add_option(String::from("Do something"), '1', 1);
+        game_ui.add_option(String::from("Do something else"), '2', 2);
+        Box::new(InGameState { menu_ui, game_ui })
     }
 }
 
 impl GameState for InGameState {
-    fn entering(&self) {}
-    fn revealing(&self) {}
-    fn obscuring(&self) {}
-    fn leaving(&self) {}
+    fn entering(&mut self) {}
+    fn revealing(&mut self) {}
+    fn obscuring(&mut self) {}
+    fn leaving(&mut self) {}
 
-    fn update(&self) {}
+    fn handle_input(&mut self, input_recorder: &InputRecorder) {
+        self.game_ui.handle_input(input_recorder);
+        self.menu_ui.handle_input(input_recorder);
+    }
+
+    fn update(&mut self, _elapsed_time: Duration) -> Vec<StateChangeAction> {
+        let mut state_change_actions = Vec::new();
+
+        if let Some(option) = self.game_ui.chosen_option() {
+            match option {
+                _ => {}
+            };
+        }
+
+        if let Some(option) = self.menu_ui.chosen_option() {
+            match option {
+                InGameMenuOptions::Inventory => {}
+                InGameMenuOptions::CharacterSheet => {}
+                InGameMenuOptions::Quit => {
+                    state_change_actions.push(StateChangeAction::SwitchState(MainMenuState::new()))
+                }
+            };
+        }
+
+        state_change_actions
+    }
 
     fn draw(&self, text_renderer: &dyn TextRenderer) {
         text_renderer.render_text("Dungeon Entrance", TextAlign::Center);
@@ -26,9 +78,8 @@ impl GameState for InGameState {
         );
         text_renderer.render_text("A huge oak door bar your way...", TextAlign::Left);
         text_renderer.render_horizontal_separator();
-        // TODO: Some kind of UI ?
         text_renderer.render_text("Please choose your option:", TextAlign::Left);
-        text_renderer.render_text("  1) Do something", TextAlign::Left);
-        text_renderer.render_text("  Q) Quit", TextAlign::Left);
+        text_renderer.render_text_ui(&self.game_ui.renderable_text_ui());
+        text_renderer.render_text_ui(&self.menu_ui.renderable_text_ui());
     }
 }

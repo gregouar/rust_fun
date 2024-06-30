@@ -1,34 +1,20 @@
-use crate::text_rendering::TextRenderer;
+use crate::{input_handling::InputRecorder, text_rendering::TextRenderer};
+use std::time::Duration;
+
+pub enum StateChangeAction {
+    SwitchState(Box<dyn GameState>),
+    PushState(Box<dyn GameState>),
+    PopState,
+    Stop,
+}
 
 pub trait GameState {
-    fn entering(&self);
-    fn revealing(&self);
-    fn obscuring(&self);
-    fn leaving(&self);
+    fn entering(&mut self);
+    fn revealing(&mut self);
+    fn obscuring(&mut self);
+    fn leaving(&mut self);
 
-    fn update(&self);
+    fn handle_input(&mut self, input_recorder: &InputRecorder);
+    fn update(&mut self, elapsed_time: Duration) -> Vec<StateChangeAction>;
     fn draw(&self, text_renderer: &dyn TextRenderer);
-
-    // fn handle_events(events_manager: &EventsManager);
-    // fn update();
-    // fn draw();
-
-    // fn set_manager(states_manager: &StatesManager);
-
-    // public:
-
-    //     virtual void handleEvents(const EventsManager *eventsManager) = 0;
-    //     virtual void update(const Time &elapsedTime) = 0;
-    //     virtual void draw(RenderWindow *renderWindow) = 0;
-
-    //     void setManager(StatesManager *);
-
-    //     void pause();
-    //     void resume();
-
-    // protected:
-    //     StatesManager *m_manager;
-
-    // private:
-    //     bool m_running;
 }

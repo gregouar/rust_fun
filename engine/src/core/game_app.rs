@@ -1,31 +1,49 @@
 use std::error::Error;
 
 use super::{GameState, GameStatesManager};
-use crate::text_rendering::TextRenderer;
+use crate::{
+    input_handling::{InputHandler, InputRecorder},
+    text_rendering::TextRenderer,
+};
+use std::time::Instant;
 pub struct GameApp {
     text_renderer: Box<dyn TextRenderer>,
+    input_handler: Box<dyn InputHandler>,
+    input_recorder: InputRecorder,
     states_manager: GameStatesManager,
-    is_running: bool,
 }
 
 // Use generic type for text_renderer ?
 impl GameApp {
-    pub fn new(text_renderer: Box<dyn TextRenderer>) -> Self {
+    pub fn new(text_renderer: Box<dyn TextRenderer>, input_handler: Box<dyn InputHandler>) -> Self {
         GameApp {
             text_renderer,
+            input_handler,
+            input_recorder: InputRecorder::new(),
             states_manager: GameStatesManager::new(),
-            is_running: true,
         }
     }
 
     pub fn run(&mut self, starting_state: Box<dyn GameState>) -> Result<(), Box<dyn Error>> {
         self.initialize(starting_state)?;
 
-        while self.is_running {
-            self.states_manager.update_states();
+        let mut start = Instant::now();
+
+        loop {
+            let elapsed_time = start.elapsed();
+            start = Instant::now();
+
+            self.input_recorder.update();
+            self.input_handler.gather_input(&mut self.input_recorder);
+            self.states_manager.handle_input(&self.input_recorder);
+            self.states_manager.update_states(elapsed_time);
 
             self.text_renderer.clear();
             self.states_manager.draw_states(&(*self.text_renderer));
+
+            if self.states_manager.peek_state().is_none() {
+                break;
+            }
         }
 
         Ok(())

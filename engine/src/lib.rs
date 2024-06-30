@@ -15,4 +15,6 @@
 
 pub mod core;
 pub mod data_storing;
+pub mod input_handling;
 pub mod text_rendering;
+pub mod ui;
