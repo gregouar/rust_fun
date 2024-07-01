@@ -1,5 +1,5 @@
 use super::{TextAlign, TextRenderer};
-use crate::ui::RenderableTextUi;
+use crate::ui::{RenderableTextUi, TextUiOrientation};
 
 pub struct ConsoleTextRenderer {
     screen_width: usize,
@@ -38,9 +38,20 @@ impl TextRenderer for ConsoleTextRenderer {
     }
 
     fn render_text_ui(&self, text_ui: &RenderableTextUi) {
-        for option in text_ui.options_iter() {
-            let formatted_label = format!(" {}) {}", option.shortcut, option.label);
-            self.render_text(&formatted_label, TextAlign::Left);
+        let iter_formatted_labels = text_ui
+            .options_iter()
+            .map(|x| format!(" {}) {}", x.shortcut, x.label));
+
+        match text_ui.orientation() {
+            TextUiOrientation::Vertical => {
+                for formatted_label in iter_formatted_labels {
+                    self.render_text(&formatted_label, TextAlign::Left);
+                }
+            }
+            TextUiOrientation::Horizontal => {
+                let str_line = iter_formatted_labels.collect::<Vec<String>>().join(" ");
+                self.render_text(&str_line, TextAlign::Left);
+            }
         }
     }
 }

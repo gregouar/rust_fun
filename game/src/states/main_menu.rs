@@ -2,7 +2,7 @@ use super::InGameState;
 use engine::core::{GameState, StateChangeAction};
 use engine::input_handling::InputRecorder;
 use engine::text_rendering::{TextAlign, TextRenderer};
-use engine::ui::TextUi;
+use engine::ui::{TextUi, TextUiOrientation};
 use std::time::Duration;
 
 #[derive(Copy, Clone)]
@@ -18,7 +18,7 @@ pub struct MainMenuState {
 
 impl MainMenuState {
     pub fn new() -> Box<Self> {
-        let mut ui = TextUi::<MainMenuOptions>::new();
+        let mut ui = TextUi::<MainMenuOptions>::new(TextUiOrientation::Vertical);
         ui.add_option(String::from("New Game"), '1', MainMenuOptions::NewGame);
         ui.add_option(String::from("Options"), '2', MainMenuOptions::Options);
         ui.add_option(String::from("Quit"), 'Q', MainMenuOptions::Quit);

@@ -3,7 +3,7 @@ use engine::core::{GameState, StateChangeAction};
 use super::MainMenuState;
 use engine::input_handling::InputRecorder;
 use engine::text_rendering::{TextAlign, TextRenderer};
-use engine::ui::TextUi;
+use engine::ui::{TextUi, TextUiOrientation};
 use std::time::Duration;
 
 #[derive(Copy, Clone)]
@@ -20,7 +20,7 @@ pub struct InGameState {
 
 impl InGameState {
     pub fn new() -> Box<Self> {
-        let mut menu_ui = TextUi::<InGameMenuOptions>::new();
+        let mut menu_ui = TextUi::<InGameMenuOptions>::new(TextUiOrientation::Horizontal);
         menu_ui.add_option(String::from("Inventory"), 'I', InGameMenuOptions::Inventory);
         menu_ui.add_option(
             String::from("Character sheet"),
@@ -29,7 +29,7 @@ impl InGameState {
         );
         menu_ui.add_option(String::from("Quit"), 'Q', InGameMenuOptions::Quit);
 
-        let mut game_ui = TextUi::new();
+        let mut game_ui = TextUi::new(TextUiOrientation::Vertical);
         // TODO: move somewhere else, should be dynamic
         game_ui.add_option(String::from("Do something"), '1', 1);
         game_ui.add_option(String::from("Do something else"), '2', 2);
@@ -78,8 +78,9 @@ impl GameState for InGameState {
         );
         text_renderer.render_text("A huge oak door bar your way...", TextAlign::Left);
         text_renderer.render_horizontal_separator();
-        text_renderer.render_text("Please choose your option:", TextAlign::Left);
-        text_renderer.render_text_ui(&self.game_ui.renderable_text_ui());
         text_renderer.render_text_ui(&self.menu_ui.renderable_text_ui());
+        text_renderer.render_horizontal_separator();
+        text_renderer.render_text("What do you want to do ?", TextAlign::Left);
+        text_renderer.render_text_ui(&self.game_ui.renderable_text_ui());
     }
 }

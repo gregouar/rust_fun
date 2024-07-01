@@ -2,6 +2,12 @@ use crate::input_handling::InputRecorder;
 
 use super::{renderable_text_ui::RenderableUiOption, RenderableTextUi};
 
+#[derive(Clone, Copy)]
+pub enum TextUiOrientation {
+    Vertical,
+    Horizontal,
+}
+
 pub struct UiOption<T: Copy> {
     pub label: String,
     pub shortcut: char,
@@ -9,13 +15,15 @@ pub struct UiOption<T: Copy> {
 }
 
 pub struct TextUi<T: Copy> {
+    orientation: TextUiOrientation,
     options: Vec<UiOption<T>>,
     chosen_option_value: Option<T>,
 }
 
 impl<T: Copy> TextUi<T> {
-    pub fn new() -> Self {
+    pub fn new(orientation: TextUiOrientation) -> Self {
         TextUi {
+            orientation,
             options: Vec::new(),
             chosen_option_value: None,
         }
@@ -53,6 +61,7 @@ impl<T: Copy> TextUi<T> {
     pub fn renderable_text_ui(&self) -> RenderableTextUi {
         // let mut options = Vec::with_capacity(self.options.len());
         RenderableTextUi::new(
+            self.orientation,
             self.options_iter()
                 .map(|x| RenderableUiOption {
                     label: &x.label[..],
