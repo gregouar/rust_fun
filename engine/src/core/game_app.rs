@@ -13,7 +13,6 @@ pub struct GameApp {
     states_manager: GameStatesManager,
 }
 
-// Use generic type for text_renderer ?
 impl GameApp {
     pub fn new(text_renderer: Box<dyn TextRenderer>, input_handler: Box<dyn InputHandler>) -> Self {
         GameApp {
@@ -35,15 +34,16 @@ impl GameApp {
 
             self.input_recorder.update();
             self.input_handler.gather_input(&mut self.input_recorder);
+
             self.states_manager.handle_input(&self.input_recorder);
             self.states_manager.update_states(elapsed_time);
-
-            self.text_renderer.clear();
-            self.states_manager.draw_states(&(*self.text_renderer));
 
             if self.states_manager.peek_state().is_none() {
                 break;
             }
+
+            self.text_renderer.clear()?;
+            self.states_manager.draw_states(&(*self.text_renderer));
         }
 
         Ok(())

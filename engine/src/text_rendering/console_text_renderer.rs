@@ -1,5 +1,8 @@
 use super::{TextAlign, TextRenderer};
 use crate::ui::{RenderableTextUi, TextUiOrientation};
+use crossterm::{terminal, ExecutableCommand};
+use std::error::Error;
+use std::io;
 
 pub struct ConsoleTextRenderer {
     screen_width: usize,
@@ -18,8 +21,13 @@ impl ConsoleTextRenderer {
 }
 
 impl TextRenderer for ConsoleTextRenderer {
-    fn clear(&self) {
+    fn clear(&self) -> Result<(), Box<dyn Error>> {
+        let mut stdout = io::stdout();
+
+        stdout.execute(terminal::Clear(terminal::ClearType::All))?;
         println!("{}", self.clear_screen_line);
+
+        Ok(())
     }
 
     fn render_text(&self, text: &str, text_align: TextAlign) {
