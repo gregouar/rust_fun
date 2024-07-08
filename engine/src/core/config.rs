@@ -10,7 +10,7 @@ const ROOT_SECTION: &str = "root";
 
 #[derive(Debug)]
 pub struct MissingSettingError<'a> {
-    setting_name: &'a str,
+    setting_name: &'a str, // Could also use a String for simplicity
 }
 
 impl<'a> fmt::Display for MissingSettingError<'a> {
@@ -89,6 +89,7 @@ impl Config {
     pub fn save_to_string(&self) -> Result<String, Box<dyn Error>> {
         let mut string_content = String::new();
         // TODO: Prevent write section title for root
+        // TODO: Sort
         for (_, section) in &self.sections {
             string_content.write_str(&format!("{}\n", section))?;
         }
@@ -104,7 +105,7 @@ impl Config {
     }
 
     pub fn read_setting_value<'a, T: FromStr>(
-        &self,
+        &'a self,
         section_name: &str,
         setting_name: &'a str,
     ) -> Result<T, Box<dyn Error + 'a>> {
@@ -141,7 +142,7 @@ impl ConfigSection {
     }
 
     fn read_setting_value<'a, T: FromStr>(
-        &self,
+        &'a self,
         setting_name: &'a str,
     ) -> Result<T, Box<dyn Error + 'a>> {
         if let Some(setting) = self.get_setting(setting_name) {
@@ -153,9 +154,9 @@ impl ConfigSection {
 
 impl fmt::Display for ConfigSection {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, " [{}]\n", self.section_name)?;
+        write!(f, "[{}]\n", self.section_name)?;
         for (_, setting) in &self.settings {
-            write!(f, " {}\n", setting)?;
+            write!(f, "{}\n", setting)?;
         }
         Ok(())
     }
@@ -182,12 +183,18 @@ impl ConfigSetting {
         self.value = String::from(value);
     }
 
-    fn read_value<T: FromStr>(&self) -> Result<T, Box<dyn Error>> {
+    fn read_value<'a, T: FromStr>(&'a self) -> Result<T, Box<dyn Error + 'a>> {
         if let Ok(value) = self.value.parse::<T>() {
             return Ok(value);
         }
         // LOG WARNING
-        self.default_value.parse::<T>()
+        if let Ok(value) = self.default_value.parse::<T>() {
+            return Ok(value);
+        }
+        Err(Box::new(MissingSettingError {
+            setting_name: &self.name,
+        }))
+        // TODO: Why can't I return the parse error ?
     }
 }
 
