@@ -103,11 +103,11 @@ impl Config {
         self.sections.get(&section_name.to_lowercase())
     }
 
-    pub fn read_setting_value<T: FromStr>(
+    pub fn read_setting_value<'a, T: FromStr>(
         &self,
         section_name: &str,
-        setting_name: &str,
-    ) -> Result<T, Box<dyn Error>> {
+        setting_name: &'a str,
+    ) -> Result<T, Box<dyn Error + 'a>> {
         if let Some(section) = self.get_section(section_name) {
             return section.read_setting_value::<T>(setting_name);
         }
@@ -140,9 +140,12 @@ impl ConfigSection {
         self.settings.get(&setting_name.to_lowercase())
     }
 
-    fn read_setting_value<T: FromStr>(&self, setting_name: &str) -> Result<T, Box<dyn Error>> {
+    fn read_setting_value<'a, T: FromStr>(
+        &self,
+        setting_name: &'a str,
+    ) -> Result<T, Box<dyn Error + 'a>> {
         if let Some(setting) = self.get_setting(setting_name) {
-            return Ok(setting.read_value::<T>()?);
+            return setting.read_value::<T>();
         }
         Err(Box::new(MissingSettingError { setting_name }))
     }
@@ -179,7 +182,7 @@ impl ConfigSetting {
         self.value = String::from(value);
     }
 
-    fn read_value<T: FromStr>(&self) -> Result<T, T::Err> {
+    fn read_value<T: FromStr>(&self) -> Result<T, Box<dyn Error>> {
         if let Ok(value) = self.value.parse::<T>() {
             return Ok(value);
         }
