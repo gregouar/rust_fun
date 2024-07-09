@@ -108,6 +108,7 @@ impl Config {
         self.sections.get(&section_name.to_lowercase())
     }
 
+    // TODO: Read default value
     pub fn read_setting_value<'a, T: FromStr>(
         &'a self,
         section_name: &str,
