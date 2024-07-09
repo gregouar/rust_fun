@@ -51,13 +51,19 @@ impl GameState for MainMenuState {
     fn update(&mut self, _elapsed_time: Duration) -> Vec<StateChangeAction> {
         let mut state_change_actions = Vec::new();
 
+        if self.obscured {
+            return state_change_actions;
+        }
+
         if let Some(option) = self.ui.chosen_option() {
             match option {
                 MainMenuOptions::NewGame => {
                     state_change_actions.push(StateChangeAction::SwitchState(InGameState::new()))
                 }
-                MainMenuOptions::Options => state_change_actions
-                    .push(StateChangeAction::PushState(SettingsMenuState::new())),
+                MainMenuOptions::Options => {
+                    state_change_actions
+                        .push(StateChangeAction::PushState(SettingsMenuState::new()));
+                }
                 MainMenuOptions::Quit => state_change_actions.push(StateChangeAction::Stop),
             };
         }

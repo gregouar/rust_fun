@@ -153,6 +153,7 @@ impl ConfigSection {
 
 impl fmt::Display for ConfigSection {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        //TODO: SORT
         write!(f, "[{}]\n", self.section_name)?;
         for (_, setting) in &self.settings {
             write!(f, "{}\n", setting)?;
