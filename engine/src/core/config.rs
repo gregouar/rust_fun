@@ -109,7 +109,6 @@ impl Config {
         self.sections.get(&section_name.to_lowercase())
     }
 
-    // TODO: Read default value
     pub fn read_setting_value<'a, T: FromStr>(
         &'a self,
         section_name: &str,
@@ -119,6 +118,13 @@ impl Config {
             return section.read_setting_value::<T>(setting_name);
         }
         Err(Box::new(MissingSettingError { setting_name }))
+    }
+
+    pub fn get_setting(&self, section_name: &str, setting_name: &str) -> Option<&ConfigSetting> {
+        if let Some(section) = self.get_section(section_name) {
+            return section.get_setting(setting_name);
+        }
+        None
     }
 }
 
@@ -146,7 +152,7 @@ impl ConfigSection {
             .or_insert_with(|| ConfigSetting::new(new_setting_id, setting_name, value))
     }
 
-    fn get_setting(&self, setting_name: &str) -> Option<&ConfigSetting> {
+    pub fn get_setting(&self, setting_name: &str) -> Option<&ConfigSetting> {
         self.settings.get(&setting_name.to_lowercase())
     }
 
@@ -197,16 +203,20 @@ impl ConfigSetting {
         }
     }
 
-    fn set_value(&mut self, value: &str) {
+    pub fn set_value(&mut self, value: &str) {
         self.value = String::from(value);
     }
 
-    fn read_value<'a, T: FromStr>(&'a self) -> Result<T, Box<dyn Error + 'a>> {
+    pub fn read_value<'a, T: FromStr>(&'a self) -> Result<T, Box<dyn Error + 'a>> {
         if let Ok(value) = self.value.parse::<T>() {
             return Ok(value);
         }
         // LOG WARNING
 
+        self.read_default_value::<T>()
+    }
+
+    pub fn read_default_value<'a, T: FromStr>(&'a self) -> Result<T, Box<dyn Error + 'a>> {
         if let Ok(value) = self.default_value.parse::<T>() {
             return Ok(value);
         }

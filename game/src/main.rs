@@ -17,11 +17,14 @@ fn main() {
     }
 
     // TODO: validation of setting (size >= 50 etc)
-    let text_renderer = ConsoleTextRenderer::new(
-        game_config
-            .read_setting_value(config::WINDOW_SECTION, "width")
-            .unwrap(),
-    );
+    let width_setting = game_config
+        .get_setting(config::WINDOW_SECTION, "width")
+        .unwrap();
+    let mut window_width: usize = width_setting.read_value().unwrap();
+    if window_width < 50 {
+        window_width = width_setting.read_default_value().unwrap();
+    }
+    let text_renderer = ConsoleTextRenderer::new(window_width);
     let input_handler = ConsoleInputHandler::new();
     let mut app = GameApp::new(text_renderer, input_handler);
 

@@ -25,8 +25,11 @@ mod tests {
     fn default_settings_parsing() {
         let config = GameConfig::new();
 
+        // TODO: Macro ?
         config
-            .read_setting_value::<usize>(WINDOW_SECTION, "width")
+            .get_setting(WINDOW_SECTION, "width")
+            .unwrap()
+            .read_default_value::<usize>()
             .unwrap();
     }
 }
