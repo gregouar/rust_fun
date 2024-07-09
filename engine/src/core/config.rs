@@ -61,9 +61,10 @@ impl Config {
 
     pub fn add_or_get_section(&mut self, section_name: &str) -> &mut ConfigSection {
         let section_key = section_name.to_lowercase();
+        let new_section_id = self.sections.len();
         self.sections
             .entry(section_key)
-            .or_insert_with(|| ConfigSection::new(section_name))
+            .or_insert_with(|| ConfigSection::new(new_section_id, section_name))
     }
 
     pub fn load_from_file(&mut self, filepath: &str) -> Result<(), Box<dyn Error>> {
@@ -88,10 +89,14 @@ impl Config {
 
     pub fn save_to_string(&self) -> Result<String, Box<dyn Error>> {
         let mut string_content = String::new();
+
         // TODO: Prevent write section title for root
-        for (_, section) in &self.sections {
+        let mut sorted_vec: Vec<&ConfigSection> = self.sections.values().collect();
+        sorted_vec.sort_by(|&x, &y| x.get_id().cmp(&y.get_id()));
+        for section in sorted_vec {
             string_content.write_str(&format!("{}\n", section))?;
         }
+
         Ok(string_content)
     }
 
@@ -117,13 +122,15 @@ impl Config {
 
 /// ConfigSection ///
 pub struct ConfigSection {
+    section_id: usize,
     section_name: String,
     settings: HashMap<String, ConfigSetting>,
 }
 
 impl ConfigSection {
-    fn new(section_name: &str) -> Self {
+    fn new(section_id: usize, section_name: &str) -> Self {
         ConfigSection {
+            section_id,
             section_name: String::from(section_name),
             settings: HashMap::new(),
         }
@@ -131,9 +138,10 @@ impl ConfigSection {
 
     pub fn add_or_get_setting(&mut self, setting_name: &str, value: &str) -> &mut ConfigSetting {
         let setting_key = setting_name.to_lowercase();
+        let new_setting_id = self.settings.len();
         self.settings
             .entry(setting_key)
-            .or_insert_with(|| ConfigSetting::new(setting_name, value))
+            .or_insert_with(|| ConfigSetting::new(new_setting_id, setting_name, value))
     }
 
     fn get_setting(&self, setting_name: &str) -> Option<&ConfigSetting> {
@@ -149,13 +157,20 @@ impl ConfigSection {
         }
         Err(Box::new(MissingSettingError { setting_name }))
     }
+
+    fn get_id(&self) -> usize {
+        self.section_id
+    }
 }
 
 impl fmt::Display for ConfigSection {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        //TODO: SORT
-        write!(f, "[{}]\n", self.section_name)?;
-        for (_, setting) in &self.settings {
+        if self.section_name != ROOT_SECTION {
+            write!(f, "[{}]\n", self.section_name)?;
+        }
+        let mut sorted_vec: Vec<&ConfigSetting> = self.settings.values().collect();
+        sorted_vec.sort_by(|&x, &y| x.get_id().cmp(&y.get_id()));
+        for setting in sorted_vec {
             write!(f, "{}\n", setting)?;
         }
         Ok(())
@@ -163,16 +178,17 @@ impl fmt::Display for ConfigSection {
 }
 
 /// ConfigSetting ///
-
 pub struct ConfigSetting {
+    id: usize,
     name: String,
     value: String,
     default_value: String,
 }
 
 impl ConfigSetting {
-    fn new(name: &str, value: &str) -> Self {
+    fn new(id: usize, name: &str, value: &str) -> Self {
         ConfigSetting {
+            id,
             name: String::from(name),
             default_value: String::from(value),
             value: String::from(value),
@@ -196,6 +212,10 @@ impl ConfigSetting {
         Err(Box::new(MissingSettingError {
             setting_name: &self.name,
         }))
+    }
+
+    fn get_id(&self) -> usize {
+        self.id
     }
 }
 
@@ -223,16 +243,30 @@ mod tests {
         config
             .load_from_string(
                 "
+        setting1 = rootvalue
+        
         [section1]
         setting1 = test
         setting2 = 32
 
+        nonparsable
+
         [section2]
         setting1 = 2
+
+        [section1]
+        setting3 = 3
         
         ",
             )
             .unwrap();
+
+        assert_eq!(
+            config
+                .read_setting_value::<String>("root", "setting1")
+                .unwrap(),
+            "rootvalue"
+        );
 
         assert_eq!(
             config
@@ -248,6 +282,12 @@ mod tests {
         );
         assert_eq!(
             config
+                .read_setting_value::<i32>("section1", "setting3")
+                .unwrap(),
+            3
+        );
+        assert_eq!(
+            config
                 .read_setting_value::<usize>("section2", "setting1")
                 .unwrap(),
             2
@@ -259,6 +299,6 @@ mod tests {
             "default2"
         );
 
-        assert_eq!(config.save_to_string().unwrap(), "[root]\n\n[section2]\nsetting1 = 2\nsetting2 = default2\n\n[section1]\nsetting1 = test\nsetting2 = 32\n\n")
+        assert_eq!(config.save_to_string().unwrap(), "setting1 = rootvalue\n\n[section1]\nsetting1 = test\nsetting2 = 32\nsetting3 = 3\n\n[section2]\nsetting1 = 2\nsetting2 = default2\n\n")
     }
 }
