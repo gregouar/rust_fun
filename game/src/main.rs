@@ -8,18 +8,12 @@ use std::process;
 
 fn main() {
     let mut game_config = config::GameConfig::new();
-    let config_path = "config.ini";
-    match game_config.load_from_file(config_path) {
-        Ok(_) => (),
-        Err(_) => game_config
-            .save_to_file(config_path)
-            .expect("Couldn't save config file."),
-    }
+    game_config.init_from_file("config.ini");
 
     // TODO: validation of setting (size >= 50 etc)
-    let width_setting = game_config
-        .get_setting(config::WINDOW_SECTION, "width")
-        .unwrap();
+    let width_setting = game_config.get_setting(config::GameConfigSettings::Window(
+        config::WindowSettings::Width,
+    ));
     let mut window_width: usize = width_setting.read_value().unwrap();
     if window_width < 50 {
         window_width = width_setting.read_default_value().unwrap();
