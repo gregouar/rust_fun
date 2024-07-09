@@ -16,7 +16,8 @@ fn main() {
             .expect("Couldn't save config file."),
     };
 
-    let text_renderer = ConsoleTextRenderer::new(config.read_setting_value("window", "width"));
+    let text_renderer =
+        ConsoleTextRenderer::new(config.read_setting_value("window", "width").unwrap());
     let input_handler = ConsoleInputHandler::new();
     let mut app = GameApp::new(text_renderer, input_handler);
 

@@ -104,7 +104,7 @@ impl Config {
     }
 
     pub fn read_setting_value<'a, T: FromStr>(
-        &self,
+        &'a self,
         section_name: &str,
         setting_name: &'a str,
     ) -> Result<T, Box<dyn Error + 'a>> {
@@ -141,7 +141,7 @@ impl ConfigSection {
     }
 
     fn read_setting_value<'a, T: FromStr>(
-        &self,
+        &'a self,
         setting_name: &'a str,
     ) -> Result<T, Box<dyn Error + 'a>> {
         if let Some(setting) = self.get_setting(setting_name) {
@@ -153,9 +153,9 @@ impl ConfigSection {
 
 impl fmt::Display for ConfigSection {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, " [{}]\n", self.section_name)?;
+        write!(f, "[{}]\n", self.section_name)?;
         for (_, setting) in &self.settings {
-            write!(f, " {}\n", setting)?;
+            write!(f, "{}\n", setting)?;
         }
         Ok(())
     }
@@ -182,17 +182,82 @@ impl ConfigSetting {
         self.value = String::from(value);
     }
 
-    fn read_value<T: FromStr>(&self) -> Result<T, Box<dyn Error>> {
+    fn read_value<'a, T: FromStr>(&'a self) -> Result<T, Box<dyn Error + 'a>> {
         if let Ok(value) = self.value.parse::<T>() {
             return Ok(value);
         }
         // LOG WARNING
-        self.default_value.parse::<T>()
+
+        if let Ok(value) = self.default_value.parse::<T>() {
+            return Ok(value);
+        }
+
+        Err(Box::new(MissingSettingError {
+            setting_name: &self.name,
+        }))
     }
 }
 
 impl fmt::Display for ConfigSetting {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{} = {}", self.name, self.value)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_parsing_config() {
+        let mut config = Config::new();
+
+        let section1 = config.add_or_get_section("section1");
+        section1.add_or_get_setting("setting1", "default1");
+
+        let section2 = config.add_or_get_section("section2");
+        section2.add_or_get_setting("setting1", "42");
+        section2.add_or_get_setting("setting2", "default2");
+
+        config
+            .load_from_string(
+                "
+        [section1]
+        setting1 = test
+        setting2 = 32
+
+        [section2]
+        setting1 = 2
+        
+        ",
+            )
+            .unwrap();
+
+        assert_eq!(
+            config
+                .read_setting_value::<String>("section1", "setting1")
+                .unwrap(),
+            "test"
+        );
+        assert_eq!(
+            config
+                .read_setting_value::<i32>("section1", "setting2")
+                .unwrap(),
+            32
+        );
+        assert_eq!(
+            config
+                .read_setting_value::<usize>("section2", "setting1")
+                .unwrap(),
+            2
+        );
+        assert_eq!(
+            config
+                .read_setting_value::<String>("section2", "setting2")
+                .unwrap(),
+            "default2"
+        );
+
+        assert_eq!(config.save_to_string().unwrap(), "[root]\n\n[section2]\nsetting1 = 2\nsetting2 = default2\n\n[section1]\nsetting1 = test\nsetting2 = 32\n\n")
     }
 }
