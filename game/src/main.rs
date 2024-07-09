@@ -14,7 +14,7 @@ fn main() {
         Err(_) => game_config
             .save_to_file(config_path)
             .expect("Couldn't save config file."),
-    };
+    }
 
     // TODO: validation of setting (size >= 50 etc)
     let text_renderer = ConsoleTextRenderer::new(

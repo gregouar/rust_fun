@@ -1,3 +1,4 @@
+use crate::DynResult;
 use std::collections::HashMap;
 use std::error;
 use std::error::Error;
@@ -67,12 +68,12 @@ impl Config {
             .or_insert_with(|| ConfigSection::new(new_section_id, section_name))
     }
 
-    pub fn load_from_file(&mut self, filepath: &str) -> Result<(), Box<dyn Error>> {
+    pub fn load_from_file(&mut self, filepath: &str) -> DynResult {
         let file_content = fs::read_to_string(filepath)?;
         self.load_from_string(&file_content)
     }
 
-    pub fn load_from_string(&mut self, raw_string: &str) -> Result<(), Box<dyn Error>> {
+    pub fn load_from_string(&mut self, raw_string: &str) -> DynResult {
         let mut cur_section = self.add_or_get_section(ROOT_SECTION);
 
         for string_content in raw_string.lines().map(|x| x.trim()) {
@@ -87,7 +88,7 @@ impl Config {
         Ok(())
     }
 
-    pub fn save_to_string(&self) -> Result<String, Box<dyn Error>> {
+    pub fn save_to_string(&self) -> DynResult<String> {
         let mut string_content = String::new();
 
         // TODO: Prevent write section title for root
@@ -100,7 +101,7 @@ impl Config {
         Ok(string_content)
     }
 
-    pub fn save_to_file(&self, filepath: &str) -> Result<(), Box<dyn Error>> {
+    pub fn save_to_file(&self, filepath: &str) -> DynResult {
         Ok(fs::write(filepath, self.save_to_string()?)?)
     }
 

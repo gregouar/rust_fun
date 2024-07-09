@@ -1,5 +1,5 @@
 use crate::ui::RenderableTextUi;
-use std::error::Error;
+use crate::DynResult;
 
 pub enum TextAlign {
     Left,
@@ -8,7 +8,7 @@ pub enum TextAlign {
 }
 
 pub trait TextRenderer {
-    fn clear(&self) -> Result<(), Box<dyn Error>>;
+    fn clear(&self) -> DynResult;
     fn render_text(&self, text: &str, text_align: TextAlign);
     fn render_horizontal_separator(&self);
     fn render_text_ui(&self, text_ui: &RenderableTextUi);

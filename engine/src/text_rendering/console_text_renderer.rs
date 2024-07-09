@@ -1,7 +1,9 @@
 use super::{TextAlign, TextRenderer};
-use crate::ui::{RenderableTextUi, TextUiOrientation};
+use crate::{
+    ui::{RenderableTextUi, TextUiOrientation},
+    DynResult,
+};
 use crossterm::{terminal, ExecutableCommand};
-use std::error::Error;
 use std::io;
 
 pub struct ConsoleTextRenderer {
@@ -21,7 +23,7 @@ impl ConsoleTextRenderer {
 }
 
 impl TextRenderer for ConsoleTextRenderer {
-    fn clear(&self) -> Result<(), Box<dyn Error>> {
+    fn clear(&self) -> DynResult {
         let mut stdout = io::stdout();
 
         stdout.execute(terminal::Clear(terminal::ClearType::All))?;

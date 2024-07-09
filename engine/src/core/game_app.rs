@@ -1,11 +1,11 @@
-use std::error::Error;
-
 use super::{GameState, GameStatesManager};
 use crate::{
     input_handling::{InputHandler, InputRecorder},
     text_rendering::TextRenderer,
+    DynResult,
 };
 use std::time::Instant;
+
 pub struct GameApp {
     text_renderer: Box<dyn TextRenderer>,
     input_handler: Box<dyn InputHandler>,
@@ -23,7 +23,7 @@ impl GameApp {
         }
     }
 
-    pub fn run(&mut self, starting_state: Box<dyn GameState>) -> Result<(), Box<dyn Error>> {
+    pub fn run(&mut self, starting_state: Box<dyn GameState>) -> DynResult {
         self.initialize(starting_state)?;
 
         let mut start = Instant::now();
@@ -49,7 +49,7 @@ impl GameApp {
         Ok(())
     }
 
-    fn initialize(&mut self, starting_state: Box<dyn GameState>) -> Result<(), Box<dyn Error>> {
+    fn initialize(&mut self, starting_state: Box<dyn GameState>) -> DynResult {
         self.states_manager.switch_state(starting_state);
 
         Ok(())

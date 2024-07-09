@@ -18,3 +18,6 @@ pub mod data_storing;
 pub mod input_handling;
 pub mod text_rendering;
 pub mod ui;
+
+use std::error::Error;
+pub type DynResult<T = (), E = Box<dyn Error>> = Result<T, E>;
