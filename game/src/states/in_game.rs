@@ -66,6 +66,10 @@ impl GameState for InGameState {
     fn update(&mut self, _elapsed_time: Duration) -> Vec<StateChangeAction> {
         let mut state_change_actions = Vec::new();
 
+        if self.obscured {
+            return state_change_actions;
+        }
+
         if let Some(option) = self.game_ui.chosen_option() {
             match option {
                 _ => {}

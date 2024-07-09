@@ -7,17 +7,21 @@ use game::states::MainMenuState;
 use std::process;
 
 fn main() {
-    let mut config = config::GameConfig::new();
+    let mut game_config = config::GameConfig::new();
     let config_path = "config.ini";
-    match config.load_from_file(config_path) {
+    match game_config.load_from_file(config_path) {
         Ok(_) => (),
-        Err(_) => config
+        Err(_) => game_config
             .save_to_file(config_path)
             .expect("Couldn't save config file."),
     };
 
-    let text_renderer =
-        ConsoleTextRenderer::new(config.read_setting_value("window", "width").unwrap());
+    // TODO: validation of setting (size >= 50 etc)
+    let text_renderer = ConsoleTextRenderer::new(
+        game_config
+            .read_setting_value(config::WINDOW_SECTION, "width")
+            .unwrap(),
+    );
     let input_handler = ConsoleInputHandler::new();
     let mut app = GameApp::new(text_renderer, input_handler);
 
