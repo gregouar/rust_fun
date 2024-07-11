@@ -1,9 +1,5 @@
 use engine::core::config::{Config, ConfigSetting};
 
-trait ToStr {
-    fn to_str(&self) -> &'static str;
-}
-
 pub enum WindowSettings {
     Width,
 }
@@ -15,24 +11,7 @@ pub enum GameConfigSettings {
     Sound(SoundSettings),
 }
 
-impl ToStr for WindowSettings {
-    fn to_str(&self) -> &'static str {
-        match self {
-            WindowSettings::Width => "width",
-        }
-    }
-}
-
-fn section_enum_to_str(section: GameConfigSettings) -> &'static str {
-    match section {
-        GameConfigSettings::Window(_) => "window",
-        GameConfigSettings::Graphics(_) => "graphics",
-        GameConfigSettings::Sound(_) => "sound",
-    }
-}
-
 fn setting_enum_to_str(section: GameConfigSettings) -> (&'static str, &'static str) {
-    section_str= section_enum_to_str(section)
     match section {
         GameConfigSettings::Window(setting) => (
             "window",
@@ -40,24 +19,24 @@ fn setting_enum_to_str(section: GameConfigSettings) -> (&'static str, &'static s
                 WindowSettings::Width => "width",
             },
         ),
-        GameConfigSettings::Graphics(_) => ("graphics", ""),
-        GameConfigSettings::Sound(_) => ("sound", ""),
+        GameConfigSettings::Graphics(setting) => ("graphics", match setting {}),
+        GameConfigSettings::Sound(setting) => ("sound", match setting {}),
     }
 }
+
 pub struct GameConfig {
     config: Config,
 }
 
 impl GameConfig {
     pub fn new() -> GameConfig {
-        let mut config = Config::new();
-
-        let window_section = config.add_or_get_section("window");
-        window_section.add_or_get_setting("width", "100");
-        let graphics_section = config.add_or_get_section("graphics");
-        let sound_section = config.add_or_get_section("sound");
-
-        GameConfig { config }
+        let mut game_config = GameConfig {
+            config: Config::new(),
+        };
+        game_config.add_setting(GameConfigSettings::Window(WindowSettings::Width), "100");
+        let graphics_section = game_config.config.add_or_get_section("graphics");
+        let sound_section = game_config.config.add_or_get_section("sound");
+        game_config
     }
 
     pub fn init_from_file(&mut self, config_filepath: &str) {
@@ -70,10 +49,16 @@ impl GameConfig {
         }
     }
 
-    // Yeah, thats not actually inheritance... need to have new create a GameConfig and store the actual config
     pub fn get_setting(&self, setting: GameConfigSettings) -> &ConfigSetting {
         let (section_name, setting_name) = setting_enum_to_str(setting);
         self.config.get_setting(section_name, setting_name).unwrap()
+    }
+
+    fn add_setting(&mut self, setting: GameConfigSettings, value: &str) {
+        let (section_name, setting_name) = setting_enum_to_str(setting);
+        self.config
+            .add_or_get_section(section_name)
+            .add_or_get_setting(setting_name, value);
     }
 }
 
