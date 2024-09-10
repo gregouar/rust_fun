@@ -5,20 +5,31 @@ use std::fmt::Write;
 use std::fs;
 
 #[derive(ConfigSection)]
-pub struct WindowConfig {
+pub struct GameplayConfigSection {
+    pub hard_mode: ConfigSetting<bool>,
+}
+
+#[derive(ConfigSection)]
+pub struct WindowConfigSection {
     pub width: ConfigSetting<usize>,
+    pub horizontal_separator: ConfigSetting<char>,
 }
 
 #[derive(Config)]
 pub struct GameConfig {
-    pub window: WindowConfig,
+    pub gameplay: GameplayConfigSection,
+    pub window: WindowConfigSection,
 }
 
 impl GameConfig {
     pub fn new() -> Self {
         GameConfig {
-            window: WindowConfig {
+            gameplay: GameplayConfigSection {
+                hard_mode: ConfigSetting::new(false),
+            },
+            window: WindowConfigSection {
                 width: ConfigSetting::new(50),
+                horizontal_separator: ConfigSetting::new('-'),
             },
         }
     }

@@ -38,7 +38,7 @@ pub fn impl_config_section(ast: &syn::DeriveInput) -> TokenStream {
         let name = f.ident.as_ref().unwrap().to_string();
         let field = &f.ident;
         quote! {
-            write!(f, "{} = {}", #name, &self.#field.value.to_string())?;
+            write!(f, "{} = {}\n", #name, &self.#field.value.to_string())?;
         }
     });
 
@@ -59,7 +59,7 @@ pub fn impl_config(ast: &syn::DeriveInput) -> TokenStream {
     let struct_name = &ast.ident;
     let fields = extract_named_fields_from_struct(ast, "Config");
 
-    let section_fields = filter_fields_by_typename(fields, "WindowConfig");
+    let section_fields = fields.iter();
 
     let print_fields = section_fields.map(|f| {
         let name = f.ident.as_ref().unwrap().to_string();
