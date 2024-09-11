@@ -1,1 +1,1 @@
-pub mod config2;
+pub mod config;

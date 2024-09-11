@@ -13,11 +13,11 @@ pub struct ConsoleTextRenderer {
 }
 
 impl ConsoleTextRenderer {
-    pub fn new(screen_width: usize) -> Box<ConsoleTextRenderer> {
+    pub fn new(screen_width: usize, horizontal_separator: char) -> Box<ConsoleTextRenderer> {
         Box::new(ConsoleTextRenderer {
             screen_width,
             clear_screen_line: "=".repeat(screen_width),
-            horizontal_separator: "-".repeat(screen_width),
+            horizontal_separator: String::from(horizontal_separator).repeat(screen_width),
         })
     }
 }
